@@ -35,3 +35,6 @@ The parse method described here has been tested on Windows (in the Spyder IDE) a
 1.  The other script in this directory `combine_and_resample_px4.py` can be used for expanding and resampling exactly one instance of .csv files created by the `ulog2csv` function.  This script is not required for the automatic expansion and resampling.
 1.  Recently, the `combine_and_resample_px4_nogui.py` was modified to fix the resample rate at 250Hz.  This was done because some PX4 log files from different firmware versions have inconsistencies in the timestamp recording which was causing the script to error out.  The script was previously calculating the fastest sample time for a given set of .csv files automatically.  This is no longer supported since the constituent .csv files are inconsistent.  The fastest message was verified manually for a handful of files at 250Hz so this rate has been hard-coded.  In the future it may be possible to add in automatic calculation functionality.
  
+ ## Other Scripts
+ 
+ The script `example_readcsvandplot.py` was added as a quick example of how to open the combined .csv and generate some plots from data.  Included is a gui file chooser and an example block to make multiple plots from a dataframe.
