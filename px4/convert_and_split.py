@@ -19,6 +19,11 @@ Changelog:
             incorporate a function written by Shawn Herrington which takes all
             constituent csv files and puts them into a single csv (also
             a new directory)
+09/13/2019  Shawn Herrington
+            Add the other methods supplied by pyulog (params, info, messages)
+            and put the output in text files.  We are not using this info
+            anywhere yet but will be using in the future (especially the
+            messages file)
 '''
 
 # os library used for directory handing and traversing
@@ -73,6 +78,12 @@ for current_file in files:
     # invoke the ulog2csv application, send the current_file as argument
     # this should create many csv in the current directory from a single ulg file
     call(["ulog2csv",current_file])
+
+    # call the other pyulog methods and write the output to text files
+    # open with 'w' option is write only and will overwrite existing files
+    call(['ulog_info',current_file], stdout=open(dir_name+'_info.txt','w'))
+    call(['ulog_params','-i',current_file], stdout=open(dir_name+'_params.txt','w'))
+    call(['ulog_messages',current_file], stdout=open(dir_name+'_messages.txt','w'))
 
     # create a path var to print out and to send to the other parse function
     # AVOID MASKING SYSTEM VAR "path" by giving it a different name
