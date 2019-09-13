@@ -43,6 +43,7 @@ found a method to extract the datetime index as an int and all is working now
 
 import os
 import pandas as pd
+import numpy as np
 
 def combine_and_resample_px4_nogui(input_path,file_suffix=''):
 
@@ -113,7 +114,7 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     resampled_df = big_df.asfreq(str(freq_arg)+freq_type,method='ffill')
     
     # get rid of the annoying time index, switch back to delta time in seconds
-    resampled_df.index = resampled_df.index.values.astype(int)
+    resampled_df.index = resampled_df.index.values.astype(np.uint64)/1000
     
     # get rid of the unused column before we send it to csv
     resampled_df = resampled_df.drop(columns=['time_properformat'])
