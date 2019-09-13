@@ -8,10 +8,10 @@ from matplotlib import pyplot as plt
 from tkinter.filedialog import askopenfilename
 
 # get filename from the dialogue
-#filename = askopenfilename(title='Select file',filetypes=[('csv files','*.csv')])
-#
-## read in the data to a var called df (dataframe)
-#df = pd.read_csv(filename, index_col=0, header=0)
+filename = askopenfilename(title='Select file',filetypes=[('csv files','*.csv')])
+
+# read in the data to a var called df (dataframe)
+df = pd.read_csv(filename, index_col=0, header=0)
 
 df['time_seconds'] = df.index/(10.0**6)
 
