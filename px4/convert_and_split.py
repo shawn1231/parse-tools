@@ -84,10 +84,9 @@ for current_file in files:
 
     # pass the progress report path to the combine_and_resample_px4_nogui() 
     # function, it will combine all csvs then stick them in a new directory
-    combine_and_resample_px4_nogui(print_path,dir_name)
+    combine_and_resample_px4_nogui(print_path)
     
     # go back up two levels so that we can keep iterating on the directory
     os.chdir(os.path.join('..','..'))
     
-    # print a blank line just to make things look nice
-    print('')
+    print('\n')

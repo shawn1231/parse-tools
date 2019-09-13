@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Written by:     Shawn Herrington, Josh Harp, Paul Klappa
-                Cody Smith, Demetri Reed
+Written by:     Shawn Herrington, Paul Klappa, Cody Smith, Demetri Reed
 Date:           09/12/2019
 Purpose:        Combine data recorded at disparate rates into a master file
 Purpose:        Developed on faux data and then modified to work specifically
@@ -39,16 +38,13 @@ Changelog:
 Fixed some bozo mistakes on the index renaming on the resampled array.  Was
 resuing the time_properformat var from the big_df var but that var was being
 ffill-ed by the resample command and giving time values that made no sense,
-found a method to extract the datetime index as an uint64
-Added filename suffix input so that files can be given unique names to avoid
-the MS Excel (cannot open more than one file with the same name) error
+found a method to extract the datetime index as an int and all is working now
 """
 
 import os
 import pandas as pd
-import numpy as np
 
-def combine_and_resample_px4_nogui(input_path, filename_suffix=''):
+def combine_and_resample_px4_nogui(input_path):
 
     os.chdir(input_path)
        
@@ -67,40 +63,10 @@ def combine_and_resample_px4_nogui(input_path, filename_suffix=''):
         # stored in column 0, the header is stored in row 0, pandas will name columns
         # automatically for us using the header row
         df = pd.read_csv(current_filename, index_col=0, header=0)
-        
-        # WARNING:  SILLY BULLSHIT IN HERE, DELETE IF CAUSING PROBLEMS
-        # this is some cute nonesense to automatically detect the fastest sample rate
-        # and use it to print out the resampled data later
-        # convert the index column of the current df to a python list
-        # only consider the difference if there is more than one sample in the file
-        if len(df.index.tolist()) > 1:
-            temp_ind1 = df.index.tolist()
-            # copy the list
-            temp_ind2 = temp_ind1[:]
-            # pop the first item off the list (hack to shift all values down by one index)
-            temp_ind2.pop(0)
-            # instantiate an empty list to store the 2pt divided difference
-            diff_list= []
-            # the syntax:  "for v1, v2 in zip(args)" will loop on v1 and v2 in parallel
-            # the zip() function will terminate the loop condition when either of v1 or v2
-            # runs out of items (it will stop on the shorter of the two lists), this is a
-            # cute way to avoid having to deal with a nan for the first/last entry and/or
-            # having to manually shorten one of the lists
-            for var1, var2 in zip(temp_ind1,temp_ind2):
-                # this is the 2pt finite difference formula, remember var2 is from a list
-                # with the first item removed so it is shifted forward by one index
-                diff_list.append(var2 - var1)
-            # keep a list of average sample time, sum/len is a quick way to find avg for
-            # a Python list
-            list_of_sampletime.append((sum(diff_list)/len(diff_list))/10.0**6)
-            # WARNING:  SILLY BULLSHIT IN HERE, DELETE IF CAUSING PROBLEMS
-        
+             
         # store the current df (from a single csv) into the big list of dfs
         list_of_df.append(df)
-    
-    # find the minimum sample time in the constituent data
-    min_sampletime = min(list_of_sampletime)
-    
+       
     # create the big df by using the concat method called on a list of small df
     big_df = pd.concat(list_of_df, axis=0, ignore_index=False, sort=False)
     
@@ -138,23 +104,16 @@ def combine_and_resample_px4_nogui(input_path, filename_suffix=''):
     # switch the index of the big_df to proper time delta column
     big_df.index = pd.to_datetime(big_df.time_properformat)
     
-    # WARNING:  SILLY BULLSHIT IN HERE, DELETE IF CAUSING PROBLEMS
-    # this is another cute trick required to format the frequency into the proper format
-    # so that we can use the automatically calculated fastest dt to determine the rate at
-    # which we want to resample the data
-    # if you want to manually input a frequency the syntax is '####U' where '####' is the
-    # number of base units in the time step (in this case base units are described by 'U'
-    # for microseconds, you can also use 'S' for seconds etc. refer to the documentation)
-    # construct the parts of the frequency option for the asfreq() method
+    # fix this for 250Hz rate since the auto calculator is causing issues
+    min_sampletime = .004
     freq_arg = int(min_sampletime*10**6)
     freq_type = 'U'
-    # WARNING:  SILLY BULLSHIT IN HERE, DELETE IF CAUSING PROBLEMS
     
     # create the resampled  df
     resampled_df = big_df.asfreq(str(freq_arg)+freq_type,method='ffill')
     
     # get rid of the annoying time index, switch back to delta time in seconds
-    resampled_df.index = resampled_df.index.values.astype(np.uint64)/1000
+    resampled_df.index = resampled_df.index.values.astype(int)
     
     # get rid of the unused column before we send it to csv
     resampled_df = resampled_df.drop(columns=['time_properformat'])
@@ -167,9 +126,9 @@ def combine_and_resample_px4_nogui(input_path, filename_suffix=''):
     
     # write the result, we want to write the index column, we want to label the index
     # column, feel free to change the name
-    resampled_df.to_csv(path_or_buf=os.path.join('combined',filename_suffix+'_combined.csv'),index=True,index_label='cpu_time')
+    resampled_df.to_csv(path_or_buf=os.path.join('combined','result.csv'),index=True,index_label='cpu_time')
     
-    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',filename_suffix+'_combined.csv')))
+    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined','results.csv')))
 
 
 
