@@ -44,7 +44,7 @@ found a method to extract the datetime index as an int and all is working now
 import os
 import pandas as pd
 
-def combine_and_resample_px4_nogui(input_path):
+def combine_and_resample_px4_nogui(input_path,file_suffix=''):
 
     os.chdir(input_path)
        
@@ -126,9 +126,9 @@ def combine_and_resample_px4_nogui(input_path):
     
     # write the result, we want to write the index column, we want to label the index
     # column, feel free to change the name
-    resampled_df.to_csv(path_or_buf=os.path.join('combined','result.csv'),index=True,index_label='cpu_time')
+    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_combined.csv'),index=True,index_label='cpu_time')
     
-    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined','results.csv')))
+    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_suffix+'_combined.csv')))
 
 
 
