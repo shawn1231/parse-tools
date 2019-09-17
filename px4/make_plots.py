@@ -80,15 +80,18 @@ def make_plots(filename_in):
     
     print('Plot Nav State')
     
-    #Graph Nav State
-    plt.figure()
-    plt.plot(df['time_seconds'],df['nav_state'])
-    #plt.axvline(x=illumination, linewidth=0.5, color='red')
-    plt.title('Nav State')
-    plt.xlabel('Time, s')
-    plt.ylabel('Value')
-    plt.legend(['Navigational State'])
-    plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_NavState.png'),dpi=600,bbox_inche='tight')
+    try:
+        #Graph Nav State
+        plt.figure()
+        plt.plot(df['time_seconds'],df['nav_state'])
+        #plt.axvline(x=illumination, linewidth=0.5, color='red')
+        plt.title('Nav State')
+        plt.xlabel('Time, s')
+        plt.ylabel('Value')
+        plt.legend(['Navigational State'])
+        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_NavState.png'),dpi=600,bbox_inche='tight')
+    except:
+        print('no nav state here...wtf? :facepalm:')
     
     print('Plot Trigger')
     
