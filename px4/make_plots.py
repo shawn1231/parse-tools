@@ -100,6 +100,6 @@ def make_plots(filename_in):
     plt.xlabel('Time, s')
     plt.ylabel('ON/OFF')
     plt.legend(['Input'])
-    plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_Accelerometer.png'),dpi=600,bbox_inche='tight')
+    plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_Trigger.png'),dpi=600,bbox_inche='tight')
     
     plt.close('all')
