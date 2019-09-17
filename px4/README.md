@@ -1,10 +1,10 @@
 # Parse Tools for PX4 Ulog Files
 
 In order to run the automated parser routine download all of the following:
-1.  `convert_and_split.py`
-1.  `combine_and_resample_px4_nogui.py`
-1.  `make_plots.py`
-1.  `quat2eul.py`
+*  `convert_and_split.py`
+*  `combine_and_resample_px4_nogui.py`
+*  `make_plots.py`
+*  `quat2eul.py`
 
 ### Concept of Operations
 
