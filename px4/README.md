@@ -1,5 +1,11 @@
 # Parse Tools for PX4 Ulog Files
 
+In order to run the automated parser routine download all of the following:
+1.  `convert_and_split.py`
+1.  `combine_and_resample_px4_nogui.py`
+1.  `make_plots.py`
+1.  `quat2eul.py`
+
 ### Concept of Operations
 
 PX4 outputs log files in a binary .ulg (Ulog) file.  Ulog files must be parsed into human readable data.  The user runs the script convert_and_split.py which invokes the ulog2csv function from the [pyulog repo](https://github.com/PX4/pyulog).  Then the script combine_and_resample_px4_nogui.py is automatically called and combines all the constituent .csv files into a master .csv which is resampled according to the maximum sample rate contained in the constituent files.
