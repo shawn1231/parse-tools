@@ -77,16 +77,17 @@ for current_file in files:
 
     # invoke the ulog2csv application, send the current_file as argument
     # this should create many csv in the current directory from a single ulg file
-    call(["ulog2csv",current_file])
-
-    # call the other pyulog methods and write the output to text files
-    # open with 'w' option is write only and will overwrite existing files
-    call(['ulog_info',current_file], stdout=open(dir_name+'_info.txt','w'))
-    call(['ulog_params','-i',current_file], stdout=open(dir_name+'_params.txt','w'))
-    call(['ulog_messages',current_file], stdout=open(dir_name+'_messages.txt','w'))
+#    call(["ulog2csv",current_file])
+#
+#    # call the other pyulog methods and write the output to text files
+#    # open with 'w' option is write only and will overwrite existing files
+#    call(['ulog_info',current_file], stdout=open(dir_name+'_info.txt','w'))
+#    call(['ulog_params','-i',current_file], stdout=open(dir_name+'_params.txt','w'))
+#    call(['ulog_messages',current_file], stdout=open(dir_name+'_messages.txt','w'))
 
     # create a path var to print out and to send to the other parse function
     # AVOID MASKING SYSTEM VAR "path" by giving it a different name
+    print('Working on files in this directory:')
     print_path = os.getcwd()
 
     # print a progress report as the name of the current directory as we work
@@ -100,4 +101,5 @@ for current_file in files:
     # go back up two levels so that we can keep iterating on the directory
     os.chdir(os.path.join('..','..'))
     
+    print('Complete.')
     print('')
