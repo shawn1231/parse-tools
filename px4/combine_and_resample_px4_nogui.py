@@ -44,6 +44,7 @@ found a method to extract the datetime index as an int and all is working now
 import os
 import pandas as pd
 import numpy as np
+import make_plots
 
 def combine_and_resample_px4_nogui(input_path,file_suffix=''):
 
@@ -54,7 +55,6 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     
     # create empty list so we can append to it
     list_of_df = []
-    list_of_sampletime = []
     
     # iterate through the csv in the current directory, create a df for each
     # filename, put the df into a list of other df
@@ -129,7 +129,10 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     # column, feel free to change the name
     resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_combined.csv'),index=True,index_label='cpu_time')
     
+    print('Resampling complete.')
     print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_suffix+'_combined.csv')))
+    
+    make_plots.make_plots(os.path.join('combined',file_suffix+'_combined.csv'))
 
 
 

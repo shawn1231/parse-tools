@@ -24,14 +24,22 @@ Changelog:
             and put the output in text files.  We are not using this info
             anywhere yet but will be using in the future (especially the
             messages file)
+9/21/2019   Simeon Karnes (comment edited by Shawn Herrington)
+            Encapsulate calls to pyulog methods inside of an if statement for
+            ease of enable/disable behavior when rerunning analysis on data
+            which has already been converted
 '''
 
 # os library used for directory handing and traversing
 import os
+#import sys
 # this will be used for calling terminal command directly from python
 from subprocess import call
 import shutil
 from combine_and_resample_px4_nogui import combine_and_resample_px4_nogui
+from tkinter.filedialog import askdirectory
+path = askdirectory(title='Select Folder') # shows dialog box and return the path
+os.chdir(path)
 
 # this will get a list of all files in the current directory ending with ".ulg"
 files = [f for f in os.listdir('.') if f.endswith(".ulg")]
@@ -77,16 +85,21 @@ for current_file in files:
 
     # invoke the ulog2csv application, send the current_file as argument
     # this should create many csv in the current directory from a single ulg file
-    call(["ulog2csv",current_file])
+    
+    #if statement to avoid reconverting all ulog files and just plot data.
+    convert_ulogs = False
+    if convert_ulogs:
+        call(["ulog2csv",current_file])
 
-    # call the other pyulog methods and write the output to text files
-    # open with 'w' option is write only and will overwrite existing files
-    call(['ulog_info',current_file], stdout=open(dir_name+'_info.txt','w'))
-    call(['ulog_params','-i',current_file], stdout=open(dir_name+'_params.txt','w'))
-    call(['ulog_messages',current_file], stdout=open(dir_name+'_messages.txt','w'))
+        # call the other pyulog methods and write the output to text files
+        # open with 'w' option is write only and will overwrite existing files
+        call(['ulog_info',current_file], stdout=open(dir_name+'_info.txt','w'))
+        call(['ulog_params','-i',current_file], stdout=open(dir_name+'_params.txt','w'))
+        call(['ulog_messages',current_file], stdout=open(dir_name+'_messages.txt','w'))
 
     # create a path var to print out and to send to the other parse function
     # AVOID MASKING SYSTEM VAR "path" by giving it a different name
+    print('Working on files in this directory:')
     print_path = os.getcwd()
 
     # print a progress report as the name of the current directory as we work
@@ -100,4 +113,5 @@ for current_file in files:
     # go back up two levels so that we can keep iterating on the directory
     os.chdir(os.path.join('..','..'))
     
+    print('Complete.')
     print('')

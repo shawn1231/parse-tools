@@ -1,5 +1,11 @@
 # Parse Tools for PX4 Ulog Files
 
+In order to run the automated parser routine download all of the following:
+*  `convert_and_split.py`
+*  `combine_and_resample_px4_nogui.py`
+*  `make_plots.py`
+*  `quat2eul.py`
+
 ### Concept of Operations
 
 PX4 outputs log files in a binary .ulg (Ulog) file.  Ulog files must be parsed into human readable data.  The user runs the script convert_and_split.py which invokes the ulog2csv function from the [pyulog repo](https://github.com/PX4/pyulog).  Then the script combine_and_resample_px4_nogui.py is automatically called and combines all the constituent .csv files into a master .csv which is resampled according to the maximum sample rate contained in the constituent files.
@@ -28,7 +34,9 @@ The parse method described here has been tested on Windows (in the Spyder IDE) a
     1.  From the command line or terminal issue the command `python convert_and_split.py`
 1.  The script will step through the list of .ulg files and create a directory for each .ulg using the name of the .ulg file as the name for the root directory.
 1.  Within each directory, the expanded .csv files will be saved inside a directory named `FlightData`.
+1.  Within the same directory, .txt files are created containing the output of the `ulog_messages`, `ulog_info`, and `ulog_params` commands (which are also part of the [pyulog repo](https://github.com/PX4/pyulog)).
 1.  The combined file containing all the output data resampled to 250Hz will be saved in a directory inside of `FlightData` called `combined`.
+1.  Plots are also now created and stored in the `Plots` directory.  Plot parameters can be changed and plots can be added omitted by modifying `make_plots.py`.
 
 ## Cautions
 
