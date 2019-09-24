@@ -8,11 +8,12 @@ Purpose:        Modified from simple example and converted to create and save
 Notes:          Modified original file to accept filename from auto parser,
                 most of the rest of the script is unchanged.
                 
-Change Log:     9/20/2019 Simeon Karnes
-                    Added "try-except" conditions around the Nav State and Trigger Plots.
-                    The RPY plotter y-axis label is now "Degrees" and the quat2eul conversion works with it.
-                9/24/2019 Simeon Karnes
-                    Added plotting CPU and RAM usage, then I organized every individual plotting into try/except blocks.
+Changelog:
+9/20/2019 Simeon Karnes
+          Added "try-except" conditions around the Nav State and Trigger Plots.
+          The RPY plotter y-axis label is now "Degrees" and the quat2eul conversion works with it.
+9/24/2019 Simeon Karnes
+          Added plotting CPU and RAM usage, then I organized every individual plotting into try/except blocks.
 """
 
 import pandas as pd
