@@ -24,10 +24,10 @@ Changelog:
             and put the output in text files.  We are not using this info
             anywhere yet but will be using in the future (especially the
             messages file)
-            
-Notes:
-9/21/2019   Simeon Karnes
-            Comment out all Ulog lines to automate plotting.
+9/21/2019   Simeon Karnes (comment edited by Shawn Herrington)
+            Encapsulate calls to pyulog methods inside of an if statement for
+            ease of enable/disable behavior when rerunning analysis on data
+            which has already been converted
 '''
 
 # os library used for directory handing and traversing
