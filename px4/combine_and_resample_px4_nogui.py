@@ -34,11 +34,15 @@ Notes:          The script does not need to be copied and pasted into the
                 directory of interest, that is handled by the askdirectory() 
                 function
 Changelog:
-09/12/2019 by Shawn Herrington
-Fixed some bozo mistakes on the index renaming on the resampled array.  Was
-resuing the time_properformat var from the big_df var but that var was being
-ffill-ed by the resample command and giving time values that made no sense,
-found a method to extract the datetime index as an int and all is working now
+        09/12/2019 by Shawn Herrington
+            Fixed some bozo mistakes on the index renaming on the resampled array.  Was
+            resuing the time_properformat var from the big_df var but that var was being
+            ffill-ed by the resample command and giving time values that made no sense,
+            found a method to extract the datetime index as an int and all is working now
+        09/24/2019 by Simeon Karnes
+            The function in lines 62-63 have been flagged as false to avoid the delay in time 
+            to recreate the big csv file just to make plots again. To re-enable combining
+            into the large csv file, set line 62 to True.
 """
 
 import os
@@ -48,90 +52,95 @@ import make_plots
 
 def combine_and_resample_px4_nogui(input_path,file_suffix=''):
 
-    os.chdir(input_path)
-       
-    # get list of filenames in directory ending with csv
-    list_of_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
-    
-    # create empty list so we can append to it
-    list_of_df = []
-    
-    # iterate through the csv in the current directory, create a df for each
-    # filename, put the df into a list of other df
-    for current_filename in list_of_filenames:
-        
-        # this is the important read, read in the data we care about, the index is
-        # stored in column 0, the header is stored in row 0, pandas will name columns
-        # automatically for us using the header row
-        df = pd.read_csv(current_filename, index_col=0, header=0)
-             
-        # store the current df (from a single csv) into the big list of dfs
-        list_of_df.append(df)
-       
-    # create the big df by using the concat method called on a list of small df
-    big_df = pd.concat(list_of_df, axis=0, ignore_index=False, sort=False)
-    
-    # sort on the timestamp column, otherwise the small df are stuck together end
-    #-to-end which isn't what we want
-    big_df = big_df.sort_values(by='timestamp')
-    
-    # for px4 some data files start with 0 for timestamp, we don't want this, so
-    # we will just discard these rows for now
-    big_df = big_df.drop(0, errors="ignore")
-    
-    # offset time to zero just because we can
-    big_df.index = big_df.index - big_df.index[0]
-    
-    # fill the missing spaces, use ffill to move the most recent valid observation
-    # forward
-    big_df = big_df.fillna(method='ffill')
-    
-    # fill the remaining na with 0, these only happen at the beginning where we
-    # previously did not have any observations to pass forward
-    big_df = big_df.fillna(0)
-    
-    # get rid of duplicate rows, not sure this iis needed but keeping just in case
-    # UPDATE:  definitely needed, first line gets rid of duplicate time entries
-    big_df = big_df[~big_df.index.duplicated()]
-    # this one gets rid of duplicated output data, not sure this is required
-    big_df = big_df.drop_duplicates()
-    
-    # create a time delta column with the proper format, note the use of 10**6 to 
-    # modify time stamp since timestamp for px4 data is in microseconds, 'S' means
-    # that this function is expected time formated ins seconds so the easiest way
-    # to fix it is just to convert the number to seconds before passing it
-    big_df['time_properformat'] = pd.to_timedelta(big_df.index/10.0**6,'S')
-    
-    # switch the index of the big_df to proper time delta column
-    big_df.index = pd.to_datetime(big_df.time_properformat)
-    
     # fix this for 250Hz rate since the auto calculator is causing issues
     min_sampletime = .004
     freq_arg = int(min_sampletime*10**6)
-    freq_type = 'U'
+    freq_type = 'U'    
     
-    # create the resampled  df
-    resampled_df = big_df.asfreq(str(freq_arg)+freq_type,method='ffill')
+    os.chdir(input_path)
     
-    # get rid of the annoying time index, switch back to delta time in seconds
-    resampled_df.index = resampled_df.index.values.astype(np.uint64)/1000
+    need_to_make_big_csv = False
+    if need_to_make_big_csv:
+       
+        # get list of filenames in directory ending with csv
+        list_of_filenames = [f for f in os.listdir('.') if f.endswith('.csv')]
+        
+        # create empty list so we can append to it
+        list_of_df = []
+        
+        # iterate through the csv in the current directory, create a df for each
+        # filename, put the df into a list of other df
+        for current_filename in list_of_filenames:
+            
+            # this is the important read, read in the data we care about, the index is
+            # stored in column 0, the header is stored in row 0, pandas will name columns
+            # automatically for us using the header row
+            df = pd.read_csv(current_filename, index_col=0, header=0)
+                 
+            # store the current df (from a single csv) into the big list of dfs
+            list_of_df.append(df)
+           
+        # create the big df by using the concat method called on a list of small df
+        big_df = pd.concat(list_of_df, axis=0, ignore_index=False, sort=False)
+        
+        # sort on the timestamp column, otherwise the small df are stuck together end
+        #-to-end which isn't what we want
+        big_df = big_df.sort_values(by='timestamp')
+        
+        # for px4 some data files start with 0 for timestamp, we don't want this, so
+        # we will just discard these rows for now
+        big_df = big_df.drop(0, errors="ignore")
+        
+        # offset time to zero just because we can
+        big_df.index = big_df.index - big_df.index[0]
+        
+        # fill the missing spaces, use ffill to move the most recent valid observation
+        # forward
+        big_df = big_df.fillna(method='ffill')
+        
+        # fill the remaining na with 0, these only happen at the beginning where we
+        # previously did not have any observations to pass forward
+        big_df = big_df.fillna(0)
+        
+        # get rid of duplicate rows, not sure this iis needed but keeping just in case
+        # UPDATE:  definitely needed, first line gets rid of duplicate time entries
+        big_df = big_df[~big_df.index.duplicated()]
+        # this one gets rid of duplicated output data, not sure this is required
+        big_df = big_df.drop_duplicates()
+        
+        # create a time delta column with the proper format, note the use of 10**6 to 
+        # modify time stamp since timestamp for px4 data is in microseconds, 'S' means
+        # that this function is expected time formated ins seconds so the easiest way
+        # to fix it is just to convert the number to seconds before passing it
+        big_df['time_properformat'] = pd.to_timedelta(big_df.index/10.0**6,'S')
+        
+        # switch the index of the big_df to proper time delta column
+        big_df.index = pd.to_datetime(big_df.time_properformat)
+        
     
-    # get rid of the unused column before we send it to csv
-    resampled_df = resampled_df.drop(columns=['time_properformat'])
-    
-    # check if folder exists and create if needed, this avoid the script trying
-    # to read it's own results.csv as one of the constituent files if we run
-    # this script on a directory where it has been run at least once previously
-    if not os.path.exists('combined'):
-        os.mkdir('combined')
-    
-    # write the result, we want to write the index column, we want to label the index
-    # column, feel free to change the name
-    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_combined.csv'),index=True,index_label='cpu_time')
-    
+        
+        # create the resampled  df
+        resampled_df = big_df.asfreq(str(freq_arg)+freq_type,method='ffill')
+        
+        # get rid of the annoying time index, switch back to delta time in seconds
+        resampled_df.index = resampled_df.index.values.astype(np.uint64)/1000
+        
+        # get rid of the unused column before we send it to csv
+        resampled_df = resampled_df.drop(columns=['time_properformat'])
+        
+        # check if folder exists and create if needed, this avoid the script trying
+        # to read it's own results.csv as one of the constituent files if we run
+        # this script on a directory where it has been run at least once previously
+        if not os.path.exists('combined'):
+            os.mkdir('combined')
+        
+        # write the result, we want to write the index column, we want to label the index
+        # column, feel free to change the name
+        resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_combined.csv'),index=True,index_label='cpu_time')
+        
     print('Resampling complete.')
     print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_suffix+'_combined.csv')))
-    
+
     make_plots.make_plots(os.path.join('combined',file_suffix+'_combined.csv'))
 
 
