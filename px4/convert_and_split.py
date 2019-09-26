@@ -28,6 +28,8 @@ Changelog:
             Encapsulate calls to pyulog methods inside of an if statement for
             ease of enable/disable behavior when rerunning analysis on data
             which has already been converted
+09/26/2019  Shawn Herrington
+            Moved enable/disable flag to the top of the file for ease of access
 '''
 
 # os library used for directory handing and traversing
@@ -43,6 +45,9 @@ os.chdir(path)
 
 # this will get a list of all files in the current directory ending with ".ulg"
 files = [f for f in os.listdir('.') if f.endswith(".ulg")]
+
+# if files have already been converted set this to True to save time
+convert_ulogs = True
 
 for current_file in files:
 
@@ -87,7 +92,6 @@ for current_file in files:
     # this should create many csv in the current directory from a single ulg file
     
     #if statement to avoid reconverting all ulog files and just plot data.
-    convert_ulogs = False
     if convert_ulogs:
         call(["ulog2csv",current_file])
 
@@ -114,4 +118,4 @@ for current_file in files:
     os.chdir(os.path.join('..','..'))
     
     print('Complete.')
-    print('')
+
