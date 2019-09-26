@@ -34,20 +34,37 @@ Changelog:
 
 # os library used for directory handing and traversing
 import os
-#import sys
+import sys
 # this will be used for calling terminal command directly from python
 from subprocess import call
 import shutil
 from combine_and_resample_px4_nogui import combine_and_resample_px4_nogui
-from tkinter.filedialog import askdirectory
-path = askdirectory(title='Select Folder') # shows dialog box and return the path
-os.chdir(path)
 
-# this will get a list of all files in the current directory ending with ".ulg"
-files = [f for f in os.listdir('.') if f.endswith(".ulg")]
+python_version = sys.version_info
+
+if python_version.major == 2:
+
+    from tkinter.filedialog import askdirectory
+    # shows dialog box and return the path
+    path = askdirectory(title='Select Folder')
+
+elif python_version.major == 3:
+
+    import tkFileDialog
+    # shows dialog box and return the path
+    path = tkFileDialog.askdirectory(title='Select Folder')
+    
+else:
+    
+    raise Exception('something is wrong with your Python version')
+    
+os.chdir(path)
 
 # if files have already been converted set this to True to save time
 convert_ulogs = True
+
+# this will get a list of all files in the current directory ending with ".ulg"
+files = [f for f in os.listdir('.') if f.endswith(".ulg")]
 
 for current_file in files:
 
