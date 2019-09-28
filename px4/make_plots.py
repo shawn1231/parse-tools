@@ -22,6 +22,11 @@ Changelog:
             prevent overwriting of duplicates.  Some fixes have been applied
             here but not all.  Further work needs to be done to fix other plots
             and/or clean up the way this was done (it's kind of sloppy)
+09/27/2019  Paul Klappa
+            Updated df column call for cpu load and ram
+            The make_plots code will now create load and ram plots
+            Added loc='best' for legend parameter to place legend box in 'best'
+            location to avoid overlaying on top of data lines
 """
 
 import pandas as pd
@@ -66,7 +71,7 @@ def make_plots(filename_in):
         plt.title('R/P/Y')
         plt.xlabel('Time, s')
         plt.ylabel('Degrees')
-        plt.legend(['Roll','Pitch','Yaw'])
+        plt.legend(['Roll','Pitch','Yaw'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_'+csv_file_prefix + '_R_P_Y_State.png'),dpi=600,bbox_inche='tight')
         print('Roll, pitch, and yaw DONE.')
     except:
@@ -84,7 +89,7 @@ def make_plots(filename_in):
         plt.title('Accelerometer')
         plt.xlabel('Time, s')
         plt.ylabel('m/s^2')
-        plt.legend(['x-axis','y-axis','z-axis'])
+        plt.legend(['x-axis','y-axis','z-axis'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_Accelerometer.png'),dpi=600,bbox_inche='tight')
         print('Accelerometer DONE.')
     except:
@@ -101,7 +106,7 @@ def make_plots(filename_in):
         plt.title('Gyroscope')
         plt.xlabel('Time, s')
         plt.ylabel('Radians')
-        plt.legend(['x-axis','y-axis','z-axis'])
+        plt.legend(['x-axis','y-axis','z-axis'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_Gyroscope.png'),dpi=600,bbox_inche='tight')
         print('Gyroscope DONE.')   
     except:
@@ -116,7 +121,7 @@ def make_plots(filename_in):
         plt.title('Nav State')
         plt.xlabel('Time, s')
         plt.ylabel('Value')
-        plt.legend(['Navigational State'])
+        plt.legend(['Navigational State'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_NavState.png'),dpi=600,bbox_inche='tight')
         print('Nav state DONE.')
     except:
@@ -131,7 +136,7 @@ def make_plots(filename_in):
         plt.title('High to Low = Trigger')
         plt.xlabel('Time, s')
         plt.ylabel('ON/OFF')
-        plt.legend(['Input'])
+        plt.legend(['Input'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_Trigger.png'),dpi=600,bbox_inche='tight')
         print('Trigger DONE.')
     except:
@@ -139,14 +144,15 @@ def make_plots(filename_in):
     
 #RAM Usage  
     try:
+        csv_file_prefix = 'cpuload_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df['ram_usage'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'ram_usage'])
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Ram Usage')
         plt.xlabel('Time, s')
         plt.ylabel('Ram Usage')
         plt.ylim(0,1)
-        plt.legend(['Ram'])
+        plt.legend(['Ram'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_RAM_Usage.png'),dpi=600,bbox_inche='tight')
         print('RAM usage DONE.')
     except:
@@ -154,14 +160,15 @@ def make_plots(filename_in):
 
 #CPU Load
     try:
+        csv_file_prefix = 'cpuload_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df['load'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'load'])
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('CPU Load')
         plt.xlabel('Time, s')
         plt.ylabel('Load')
         plt.ylim(0,1)
-        plt.legend(['Load'])
+        plt.legend(['Load'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_CPU_Load.png'),dpi=600,bbox_inche='tight')
         print('CPU load DONE.')
     except:
