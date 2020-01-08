@@ -82,46 +82,50 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
         # create empty list so we can append to it
         list_of_df = []
         
+        exclude_list = ['position_setpoint_triplet_0','sensor_selection_0','telemetry_status_0','vehicle_status_flags_0','mission_result_0']
+        
         # iterate through the csv in the current directory, create a df for each
         # filename, put the df into a list of other df
         for current_filename in list_of_filenames:
             
-            # create match string, this will be used to remove the test name from the
-            # filename when creating df columns
-            # duplicate columns were being deleted so constituent csv titles were
-            # added to column headers but they now have "Test_XX" added to them, and
-            # since the number of digits varies the string has to be removed more
-            # carefully than by slicing
-            _, match_string = os.path.split(os.path.dirname(input_path))
-                       
-            # this is the important read, read in the data we care about, the index is
-            # stored in column 0, the header is stored in row 0, pandas will name columns
-            # automatically for us using the header row
-            df = pd.read_csv(current_filename, index_col=0, header=0)
+            if not any(excluded_name in current_filename for excluded_name in exclude_list):
             
-            # create list of df columns
-            list_of_column_names = list(df.columns)
-            list_of_new_column_names = []
-                        
-            for column_name in list_of_column_names:
+                # create match string, this will be used to remove the test name from the
+                # filename when creating df columns
+                # duplicate columns were being deleted so constituent csv titles were
+                # added to column headers but they now have "Test_XX" added to them, and
+                # since the number of digits varies the string has to be removed more
+                # carefully than by slicing
+                _, match_string = os.path.split(os.path.dirname(input_path))
+                           
+                # this is the important read, read in the data we care about, the index is
+                # stored in column 0, the header is stored in row 0, pandas will name columns
+                # automatically for us using the header row
+                df = pd.read_csv(current_filename, index_col=0, header=0)
                 
-                # append the filename (minus extension onto each var in the resampled file)
-                new_column_name = current_filename[:-4] + '_' + column_name
-                                
-                # replace the text "Test_XX" with blanks
-                new_column_name = new_column_name.replace(match_string+'_','')
+                # create list of df columns
+                list_of_column_names = list(df.columns)
+                list_of_new_column_names = []
+                            
+                for column_name in list_of_column_names:
+                    
+                    # append the filename (minus extension onto each var in the resampled file)
+                    new_column_name = current_filename[:-4] + '_' + column_name
+                                    
+                    # replace the text "Test_XX" with blanks
+                    new_column_name = new_column_name.replace(match_string+'_','')
+                    
+                    # build the new name list
+                    list_of_new_column_names.append(new_column_name)
                 
-                # build the new name list
-                list_of_new_column_names.append(new_column_name)
-            
-            # create dicitonary from key = old names, values = new names
-            rename_dictionary = dict(zip(list_of_column_names,list_of_new_column_names))
-            
-            # invoke rename method using created dict to rename columns intelligently
-            df.rename(columns = rename_dictionary,inplace=True)
-                 
-            # store the current df (from a single csv) into the big list of dfs
-            list_of_df.append(df)
+                # create dicitonary from key = old names, values = new names
+                rename_dictionary = dict(zip(list_of_column_names,list_of_new_column_names))
+                
+                # invoke rename method using created dict to rename columns intelligently
+                df.rename(columns = rename_dictionary,inplace=True)
+                     
+                # store the current df (from a single csv) into the big list of dfs
+                list_of_df.append(df)
            
         # create the big df by using the concat method called on a list of small df
         big_df = pd.concat(list_of_df, axis=0, ignore_index=False, sort=False)

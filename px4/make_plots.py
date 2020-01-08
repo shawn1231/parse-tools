@@ -59,7 +59,7 @@ def make_plots(filename_in):
         
         plt.figure()
         
-        print(csv_file_prefix+'_'+'q[0]')
+#        print(csv_file_prefix+'_'+'q[0]')
         
         # make euler angles from quaternions
         r,p,y = quat2eul.quat2eul(df[csv_file_prefix+'_'+'q[0]'],df[csv_file_prefix+'_'+'q[1]'],df[csv_file_prefix+'_'+'q[2]'],df[csv_file_prefix+'_'+'q[3]'])
@@ -112,6 +112,72 @@ def make_plots(filename_in):
     except:
         print('No gyroscope.')
 
+#Graph Voltage    
+    try:
+        csv_file_prefix = 'system_power_0' 
+        plt.figure()
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage5v_v'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage3v3_v'])
+        #plt.axvline(x=illumination, linewidth=0.5, color='red')
+        plt.title('Power Module Voltage')
+        plt.xlabel('Time, s')
+        plt.ylabel('Volt')
+        plt.legend(['5V','3V'],loc='best')
+        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_PMUVoltage.png'),dpi=600,bbox_inche='tight')
+        print('Power DONE.')   
+    except:
+        print('No power.')
+ 
+#Graph Current    
+    try:
+        csv_file_prefix = 'battery_status_0' 
+        plt.figure()
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'current_a'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'current_filtered_a'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'average_current_a'])
+        #plt.axvline(x=illumination, linewidth=0.5, color='red')
+        plt.title('Battery Current')
+        plt.xlabel('Time, s')
+        plt.ylabel('Amp')
+        plt.legend(['current','filtered','average'],loc='best')
+        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_BatteryCurrent.png'),dpi=600,bbox_inche='tight')
+        print('Battery Current DONE.')   
+    except:
+        print('No battery current.')
+        
+#Graph Other Voltage
+    try:
+        csv_file_prefix = 'battery_status_0' 
+        plt.figure()
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage_v'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage_filtered_v'])
+        #plt.axvline(x=illumination, linewidth=0.5, color='red')
+        plt.title('Battery Voltage')
+        plt.xlabel('Time, s')
+        plt.ylabel('Amp')
+        plt.legend(['voltage','filtered'],loc='best')
+        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_BatteryVoltage.png'),dpi=600,bbox_inche='tight')
+        print('Battery Voltage DONE.')   
+    except:
+        print('No battery voltage.')
+
+#Graph Mag    
+    try:
+        csv_file_prefix = 'vehicle_magnetometer_0' 
+        plt.figure()
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[0]'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[1]'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[2]'])
+        #plt.axvline(x=illumination, linewidth=0.5, color='red')
+        plt.title('Magnetometer')
+        plt.xlabel('Time, s')
+        plt.ylabel('Gauss')
+        plt.legend(['x-axis','y-axis','z-axis'],loc='best')
+        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_Magnetometer.png'),dpi=600,bbox_inche='tight')
+        print('Magentometer DONE.')   
+    except:
+        print('No magnetometer.')
+        
 #Graph Nav State
     try:
         csv_file_prefix = 'vehicle_status_0'
@@ -126,21 +192,24 @@ def make_plots(filename_in):
         print('Nav state DONE.')
     except:
         print('No nav state.')
-        
+
+              
 #Graph Trigger
-        #This is not yet a reliable way to determine the trigger time.
+        #Using the new trigger method, mode swith should form a square pulse
+        #about 3s prior
     try:
+        csv_file_prefix = 'input_rc_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df['values[5]'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'values[5]'])
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
-        plt.title('High to Low = Trigger')
+        plt.title('RC Channel 5 (trigger)')
         plt.xlabel('Time, s')
-        plt.ylabel('ON/OFF')
-        plt.legend(['Input'],loc='best')
-        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_Trigger.png'),dpi=600,bbox_inche='tight')
-        print('Trigger DONE.')
+        plt.ylabel('Value')
+        plt.legend(['Channel 5'],loc='best')
+        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_RC.png'),dpi=600,bbox_inche='tight')
+        print('RC DONE.')
     except:
-        print('No trigger.')
+        print('No RC.')
     
 #RAM Usage  
     try:
@@ -173,6 +242,20 @@ def make_plots(filename_in):
         print('CPU load DONE.')
     except:
         print('No CPU load.')
+        
+#Graph Number of Satellites
+    try:
+        csv_file_prefix = 'vehicle_gps_position_0'
+        plt.figure()
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'satellites_used'])
+        plt.title('GPS Number of Satellites')
+        plt.xlabel('Time, s')
+        plt.ylabel('Value')
+        plt.legend(['Satellites'],loc='best')
+        plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_Satellites.png'),dpi=600,bbox_inche='tight')
+        print('GPS Satellites DONE.')   
+    except:
+        print('No satellites.')
         
     plt.close('all')
     

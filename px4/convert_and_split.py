@@ -42,13 +42,13 @@ from combine_and_resample_px4_nogui import combine_and_resample_px4_nogui
 
 python_version = sys.version_info
 
-if python_version.major == 2:
+if python_version.major == 3:
 
     from tkinter.filedialog import askdirectory
     # shows dialog box and return the path
     path = askdirectory(title='Select Folder')
 
-elif python_version.major == 3:
+elif python_version.major == 2:
 
     import tkFileDialog
     # shows dialog box and return the path
