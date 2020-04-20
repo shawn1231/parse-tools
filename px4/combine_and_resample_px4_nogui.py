@@ -55,16 +55,24 @@ import os
 import pandas as pd
 import numpy as np
 import sys
-import make_plots
+from quat2eul import quat2eul
+#import make_plots
 
 
 def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     
     #list of file keywords to identify the files we want
-    keywords_in_wanted_files = ['gps_position','combined','magnetometer_0','input_rc','battery_status','attitude','control']
+    keywords_in_wanted_files = ['gps_position','combined','magnetometer_0',
+                                'input_rc','battery_status','attitude',
+                                'control','air_data','vehicle_status_0']
     
     #list of key words to identify the columns we wantS
-    keywords_for_columns = ['lat','lon','alt','hdop','vdop','mode_slot','accelerometer_m_','gyro_rad','magnetometer_ga','failsafe','voltage','rssi','channel','q[']
+    keywords_for_columns = ['lat','lon','alt','hdop','vdop','mode_slot',
+                            'accelerometer_m_s2[0]','accelerometer_m_s2[1]',
+                            'accelerometer_m_s2[2]','gyro_rad[0]','gyro_rad[1]',
+                            'gyro_rad[2]','magnetometer_ga[0]','magnetometer_ga[1]',
+                            'magnetometer_ga[2]','failsafe','voltage','rssi',
+                            'channel','q[0]','q[1]','q[2]','q[3]','baro_alt','values[5]','nav_state']
 
     os.chdir(input_path)
        
@@ -84,9 +92,11 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     #empty list so we can append it
     reject_column_list = []
     
+    #empty list to append
+    new_headers = []
+    
     # iterate through the csv in the current directory, create a df for each
     # filename, put the df into a list of other df
-    
     for current_filename in list_of_filenames:
         
         # this is the important read, read in the data we care about, the index is
@@ -103,27 +113,40 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
         
         #get a list of the columns we want to keep for each csv by iterating through the file
         #and getting the headers
+        
         for header in column_headers:
             #get the list of keywords
             for keyword in keywords_for_columns:
                 #check if the keyword is on the header
                 if keyword in header:
+                    #the word lat and alt is used in other headers this takes 
+                    #care of the problem
+                    if keyword == 'lat' and header == 'lat':
+                        columns_to_keep.append(header)
+                        assign_names(keyword, new_headers)
+                    if keyword == 'alt' and header == 'alt':
+                        columns_to_keep.append(header)
+                        assign_names(keyword, new_headers)
+                        
                     #add the header to the list of headers to keep if it has the keyword
-                    columns_to_keep.append(header)
+                    #by calling the assignname_ function
+                    if keyword != 'lat' and keyword != 'alt':
+                        columns_to_keep.append(header)
+                        assign_names(keyword, new_headers)
         
         #change the list to just have the columns we want
         reject_column_list = [header for header in column_headers if header not in columns_to_keep]
        
         #drop all columns that we do not want
         df = df.drop(columns = reject_column_list)
-             
+
         # store the current df (from a single csv) into the big list of dfs
         list_of_df.append(df)
-   
+           
         
     # create the big df by using the concat method called on a list of small df
     big_df = pd.concat(list_of_df, axis=0, ignore_index=False, sort=False)
-    
+
     # sort on the timestamp column, otherwise the small df are stuck together end
     #-to-end which isn't what we want
     big_df = big_df.sort_values(by='timestamp')
@@ -131,8 +154,6 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     # for px4 some data files start with 0 for timestamp, we don't want this, so
     # we will just discard these rows for now
     big_df = big_df.drop(0, errors="ignore")
-    
-    #discard
      
     # offset time to zero just because we can
     big_df.index = big_df.index - big_df.index[0]
@@ -145,7 +166,7 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     # previously did not have any observations to pass forward
     big_df = big_df.fillna(0)
     
-    # get rid of duplicate rows, not sure this iis needed but keeping just in case
+    # get rid of duplicate rows, not sure this is needed but keeping just in case
     # UPDATE:  definitely needed, first line gets rid of duplicate time entries
     big_df = big_df[~big_df.index.duplicated()]
     # this one gets rid of duplicated output data, not sure this is required
@@ -166,13 +187,30 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     freq_type = 'U'
     
     # create the resampled  df
-    resampled_df = big_df.asfreq(str(freq_arg)+freq_type,method='ffill')
+    resampled_df = big_df.asfreq(str(freq_arg)+freq_type, method='ffill')
     
     # get rid of the annoying time index, switch back to delta time in seconds
     resampled_df.index = resampled_df.index.values.astype(np.uint64)/1000
     
     # get rid of the unused column before we send it to csv
     resampled_df = resampled_df.drop(columns=['time_properformat'])
+    
+    #assign the new headers to the columns
+    resampled_df.columns = new_headers
+    
+    """
+    #add columns with quat to eul by calling the function
+    r,p,y = quat2eul(df['Att.Qx'],df['Att.Qy'],df['Att.Qz'],df['Att.Qw'])
+    
+    # add the pitch roll and yaw to the big_df
+    resampled_df['Att.Roll'] = r
+    resampled_df['Att.Pitch'] = p
+    resampled_df['Att.Yaw'] = y
+    
+    
+    #drop the columns with the quat data in them
+    resampled_df.drop(columns = ['Att.Qx','Att.Qy','Att.Qz','Att.Qw'])
+    """
     
     # check if folder exists and create if needed, this avoid the script trying
     # to read it's own results.csv as one of the constituent files if we run
@@ -182,12 +220,66 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     
     # write the result, we want to write the index column, we want to label the index
     # column, feel free to change the name
-    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_combined.csv'),index=True,index_label='cpu_time')
+    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_combined.csv'),index=True,index_label='Time')
     
     print('Resampling complete.')
     print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_suffix+'_combined.csv')))
     
-    make_plots.make_plots(os.path.join('combined',file_suffix+'_combined.csv'))
+    #make_plots.make_plots(os.path.join('combined',file_suffix+'_combined.csv'))
+
+# function creates a list of the new column headers in the correct order
+def assign_names(keyword, new_headers):
     
-#def change_names(current_names, new_names):
-    
+    #assign the new header to the current header by the keyword
+    if (keyword == 'lat'):
+        new_headers.append('GPS.lat')
+    if (keyword == 'lon'):
+         new_headers.append('GPS.lon')
+    if (keyword =='alt'):
+         new_headers.append('GPS.alt')                        
+    if (keyword == 'hdop'):
+         new_headers.append('GPS.hdop')
+    if (keyword == 'vdop'):
+         new_headers.append('GPS.vdop')
+    if (keyword == 'mode_slot'):
+         new_headers.append('Mode')
+    if (keyword == 'accelerometer_m_s2[0]'):
+         new_headers.append('Accel.x')
+    if (keyword == 'accelerometer_m_s2[1]'):
+         new_headers.append('Accel.y')
+    if (keyword == 'accelerometer_m_s2[2]'):
+        new_headers.append('Accel.z')
+    if (keyword == 'gyro_rad[0]'):
+         new_headers.append('Gyro.x')
+    if (keyword == 'gyro_rad[1]'):
+         new_headers.append('Gyro.y')
+    if (keyword == 'gyro_rad[2]'):
+         new_headers.append('Gyro.z')
+    if (keyword == 'magnetometer_ga[0]'):
+         new_headers.append('Mag.x')
+    if (keyword == 'magnetometer_ga[1]'):
+         new_headers.append('Mag.y')
+    if (keyword == 'magnetometer_ga[2]'):
+         new_headers.append('Mag.z')
+    if (keyword == 'failsafe'):
+         new_headers.append('RCfailsafe')
+    if (keyword == 'voltage'):
+         new_headers.append('Batt')
+    if (keyword == 'rssi'):
+         new_headers.append('RCsignalstrength')
+    if (keyword == 'channel'):
+         new_headers.append('RCin')
+    if (keyword == 'q[0]'):
+         new_headers.append('Att.Qx')
+    if (keyword == 'q[1]'):
+         new_headers.append('Att.Qy')
+    if (keyword == 'q[2]'):
+         new_headers.append('Att.Qz')
+    if (keyword == 'q[3]'):
+         new_headers.append('Att.Qw')
+    if (keyword == 'baro_alt'):
+         new_headers.append('BaroAlt')
+    if (keyword == 'values[5]'):
+         new_headers.append('Trigger')
+    if (keyword == 'nav_state'):
+         new_headers.append('Nav State')
