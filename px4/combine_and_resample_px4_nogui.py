@@ -169,6 +169,7 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     # get rid of duplicate rows, not sure this is needed but keeping just in case
     # UPDATE:  definitely needed, first line gets rid of duplicate time entries
     big_df = big_df[~big_df.index.duplicated()]
+    
     # this one gets rid of duplicated output data, not sure this is required
     big_df = big_df.drop_duplicates()
     
@@ -198,19 +199,16 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     #assign the new headers to the columns
     resampled_df.columns = new_headers
     
-    """
-    #add columns with quat to eul by calling the function
-    r,p,y = quat2eul(df['Att.Qx'],df['Att.Qy'],df['Att.Qz'],df['Att.Qw'])
+    #call the quat2eul function to change the attitude to eul
+    r,p,y = quat2eul(resampled_df['Att.Qx'],resampled_df['Att.Qy'],resampled_df['Att.Qz'],resampled_df['Att.Qw'])
     
-    # add the pitch roll and yaw to the big_df
+    # add the pitch roll and yaw to the resampled_df
     resampled_df['Att.Roll'] = r
     resampled_df['Att.Pitch'] = p
     resampled_df['Att.Yaw'] = y
     
-    
     #drop the columns with the quat data in them
-    resampled_df.drop(columns = ['Att.Qx','Att.Qy','Att.Qz','Att.Qw'])
-    """
+    resampled_df = resampled_df.drop(columns = ['Att.Qx','Att.Qy','Att.Qz','Att.Qw'])
     
     # check if folder exists and create if needed, this avoid the script trying
     # to read it's own results.csv as one of the constituent files if we run
