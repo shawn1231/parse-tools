@@ -99,13 +99,13 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'sensor_combined_0' 
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'gyro_rad[0]'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'gyro_rad[1]'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'gyro_rad[2]'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'gyro_rad[0]'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'gyro_rad[1]'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'gyro_rad[2]'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Gyroscope')
         plt.xlabel('Time, s')
-        plt.ylabel('Radians')
+        plt.ylabel('Rad/s')
         plt.legend(['x-axis','y-axis','z-axis'],loc='best')
         plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4] + '_' + csv_file_prefix + '_Gyroscope.png'),dpi=600,bbox_inche='tight')
         print('Gyroscope DONE.')   
@@ -116,8 +116,8 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'system_power_0' 
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage5v_v'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage3v3_v'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage5v_v'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage3v3_v'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Power Module Voltage')
         plt.xlabel('Time, s')
@@ -132,9 +132,9 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'battery_status_0' 
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'current_a'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'current_filtered_a'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'average_current_a'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'current_a'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'current_filtered_a'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'average_current_a'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Battery Current')
         plt.xlabel('Time, s')
@@ -149,8 +149,8 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'battery_status_0' 
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage_v'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage_filtered_v'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage_v'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'voltage_filtered_v'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Battery Voltage')
         plt.xlabel('Time, s')
@@ -165,9 +165,9 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'vehicle_magnetometer_0' 
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[0]'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[1]'])
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[2]'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[0]'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[1]'],linewidth=1)
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'magnetometer_ga[2]'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Magnetometer')
         plt.xlabel('Time, s')
@@ -182,7 +182,7 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'vehicle_status_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'nav_state'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'nav_state'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Nav State')
         plt.xlabel('Time, s')
@@ -200,7 +200,7 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'input_rc_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'values[5]'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'values[5]'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('RC Channel 5 (trigger)')
         plt.xlabel('Time, s')
@@ -215,7 +215,7 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'cpuload_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'ram_usage'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'ram_usage'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('Ram Usage')
         plt.xlabel('Time, s')
@@ -231,7 +231,7 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'cpuload_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'load'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'load'],linewidth=1)
         #plt.axvline(x=illumination, linewidth=0.5, color='red')
         plt.title('CPU Load')
         plt.xlabel('Time, s')
@@ -247,7 +247,7 @@ def make_plots(filename_in):
     try:
         csv_file_prefix = 'vehicle_gps_position_0'
         plt.figure()
-        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'satellites_used'])
+        plt.plot(df['time_seconds'],df[csv_file_prefix+'_'+'satellites_used'],linewidth=1)
         plt.title('GPS Number of Satellites')
         plt.xlabel('Time, s')
         plt.ylabel('Value')
