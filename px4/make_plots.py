@@ -7,12 +7,16 @@ Purpose:        Modified from simple example and converted to create and save
                 plots automatically inside of automated parser
 Notes:          Modified original file to accept filename from auto parser,
                 most of the rest of the script is unchanged
+Change Log:     Thomas Cacy
+Date:           07/08/2020
+                changed so it works with unified parsing script's new headers
+                and removed convertions that happen in the combine_and_resample
+                script
 """
 
 import pandas as pd
 import os
 from matplotlib import pyplot as plt
-from quat2eul import quat2eul
 #from tkinter.filedialog import askopenfilename
 # get filename from the dialogue
 #filename = askopenfilename(title='Select file',filetypes=[('csv files','*.csv')])
@@ -21,28 +25,24 @@ def make_plots(filename_in):
        
     filename = os.path.join(os.getcwd(),filename_in)
     
-    print('Creating and saving plots from this filename:')
+    print('Creating and saving plots from:')
     
     print(filename_in)
 
     # read in the data to a var called df (dataframe)
     df = pd.read_csv(filename, index_col=0, header=0)
-    df['time_seconds'] = df.index/(10.0**6)
+    df['time_seconds'] = df.index
     
     just_the_pathname, just_the_filename = os.path.split(filename)
     #illumination = int(input('Time of illumination (s):     '))
     
     print('Plot Roll Pitch Yaw')
     
-    #Graph R/P/Y
+    #Create a new figure to graph r p y
     plt.figure()
-    
-    # make euler angles from quaternions
-    r,p,y = quat2eul(df['Att.Qx'],df['Att.Qy'],df['Att.Qz'],df['Att.Qw'])
-    
-    plt.plot(df['Time'],r)
-    plt.plot(df['Time'],p)
-    plt.plot(df['Time'],y)
+    plt.plot(df['time_seconds'],df["Att.roll"])
+    plt.plot(df['time_seconds'],df["Att.pitch"])
+    plt.plot(df['time_seconds'],df["Att.yaw"])
     #plt.axvline(x=illumination, linewidth=0.5, color='red')
     plt.title('R/P/Y')
     plt.xlabel('Time, s')
@@ -54,9 +54,9 @@ def make_plots(filename_in):
     
     #Graph Accelerometer
     plt.figure()
-    plt.plot(df['Time'],df['Accel'])
-    plt.plot(df['Time'],df['Accel'])
-    plt.plot(df['Time'],df['Accel'])
+    plt.plot(df['time_seconds'],df['Accel.x'])
+    plt.plot(df['time_seconds'],df['Accel.y'])
+    plt.plot(df['time_seconds'],df['Accel.z'])
     #plt.axvline(x=illumination, linewidth=0.5, color='red')
     plt.title('Accelerometer')
     plt.xlabel('Time, s')
@@ -68,9 +68,9 @@ def make_plots(filename_in):
     
     #Graph Gyroscope
     plt.figure()
-    plt.plot(df['Time'],df['Gyro.x'])
-    plt.plot(df['Time'],df['Gyro.y'])
-    plt.plot(df['Time'],df['Gyro.z'])
+    plt.plot(df['time_seconds'],df['Gyro.x'])
+    plt.plot(df['time_seconds'],df['Gyro.y'])
+    plt.plot(df['time_seconds'],df['Gyro.z'])
     #plt.axvline(x=illumination, linewidth=0.5, color='red')
     plt.title('Gyroscope')
     plt.xlabel('Time, s')
@@ -82,7 +82,7 @@ def make_plots(filename_in):
     
     #Graph Nav State
     plt.figure()
-    plt.plot(df['Time'],df['Nav State'])
+    plt.plot(df['time_seconds'],df['Nav State'])
     #plt.axvline(x=illumination, linewidth=0.5, color='red')
     plt.title('Nav State')
     plt.xlabel('Time, s')
@@ -94,7 +94,7 @@ def make_plots(filename_in):
     
     #Graph Trigger
     plt.figure()
-    plt.plot(df['Time'],df['Trigger'])
+    plt.plot(df['time_seconds'],df['Trigger'])
     #plt.axvline(x=illumination, linewidth=0.5, color='red')
     plt.title('High to Low = Trigger')
     plt.xlabel('Time, s')

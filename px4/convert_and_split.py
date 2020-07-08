@@ -30,6 +30,9 @@ Changelog:
             which has already been converted
 09/26/2019  Shawn Herrington
             Moved enable/disable flag to the top of the file for ease of access
+07/08/2020  Thomas Cacy
+            Replaced a line that changes the working dir so that it works and 
+            will process all files in a dir
 '''
 
 # os library used for directory handing and traversing
@@ -42,6 +45,10 @@ from combine_and_resample_px4_nogui import combine_and_resample_px4_nogui
 
 python_version = sys.version_info
 
+#this is a stand in
+path = "C:/Users/thoma/Documents/Work/test_files"
+
+'''
 if python_version.major == 3:
 
     from tkinter.filedialog import askdirectory
@@ -57,14 +64,34 @@ elif python_version.major == 2:
 else:
     
     raise Exception('something is wrong with your Python version')
-    
+'''
 os.chdir(path)
 
-# if files have already been converted set this to True to save time
+# if files have already been converted set this to False to save time
 convert_ulogs = True
 
 # this will get a list of all files in the current directory ending with ".ulg"
 files = [f for f in os.listdir('.') if f.endswith(".ulg")]
+
+# gets list of everything in the directory
+directories = [d for d in os.listdir('.')]
+
+# remove everything but the folders from the list
+for d in directories:
+    if os.path.isdir(d) == False:
+        directories.remove(d)
+
+# compare the lists and if any names match exactly remove from files
+for d in directories:
+    for f in files:
+        endlen = len(f)
+        filename = f[:endlen-4]
+        if d == filename:
+            files.remove(f)
+
+# check if there are any files to process and exit if not
+if len(files) == 0:
+    sys.exit("There are no files to process in " + path)
 
 for current_file in files:
 
@@ -76,18 +103,18 @@ for current_file in files:
     # if statement to determine if directory exists
     if(not(os.path.isdir(dir_name))):
         # if no directory exists, create the directory
-        #call(["mkdir",dir_name])
         os.mkdir(dir_name)
 
     # populate the directory with the data file, "-n" is copy without replacing
     # saves us from using another if statement to check if the data file exists
-    #call(["cp","-n",current_file,dir_name])
+    # call(["cp","-n",current_file,dir_name])
     shutil.copy2(current_file,dir_name)
 
     # change to the directory we are currently concerned with
     os.chdir(dir_name)
 
-    # create list of subdirectories so we can create them as necessary in a fancy way
+    # create list of subdirectories so we can create them as necessary in a 
+    # fancy way
     subdir_names = ["Flight_Data","Plots"]
 
     for current_name in subdir_names:
@@ -104,12 +131,13 @@ for current_file in files:
 
     # now we need to change to the subdirectory to run the ulog2csv converter
     os.chdir(subdir_names[0])
-
-    # invoke the ulog2csv application, send the current_file as argument
-    # this should create many csv in the current directory from a single ulg file
     
-    #if statement to avoid reconverting all ulog files and just plot data.
+    # if statement to avoid reconverting all ulog files and just plot data.
     if convert_ulogs:
+        
+        # invoke the ulog2csv application, send the current_file as argument
+        # this should create many csv in the current directory from a single 
+        # ulg file
         call(["ulog2csv",current_file])
 
         # call the other pyulog methods and write the output to text files
@@ -131,8 +159,10 @@ for current_file in files:
     # function, it will combine all csvs then stick them in a new directory
     combine_and_resample_px4_nogui(print_path,dir_name)
     
-    # go back up two levels so that we can keep iterating on the directory
-    os.chdir(os.path.join('..','..'))
+    # go back up two levels so that we can keep iterating through the files in
+    # the right directory
+    os.chdir('..')
+    os.chdir('..')
     
     print('Complete.')
 

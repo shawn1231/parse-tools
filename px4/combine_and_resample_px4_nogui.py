@@ -37,11 +37,16 @@ Notes:          To change the files which are added to the master csv, modify
                 the keywords_in_wanted_files list. To change the columns which 
                 are included in the master csv, modify the keywords_for_columns
                 list.
+Notes:          To make the ulog2csv converter work, install pyulog in the 
+                iPython console. To run commands from the console, you might 
+                need to preface it with '!.' Otherwise there will be a syntax
+                error
     
 Changelog:
 04/17/2020 by Thomas Cacy
-Changed what files are read into the program so that it only read the files we want.
-Also added some code to only take in the columns we want
+Changed what files are read into the program so that it only read the files we 
+want. Added some code to only take in the columns we want and obfuscate 
+some data. Fixed the 'Time' column so it is in seconds not milliseconds
 
 09/12/2019 by Shawn Herrington
 Fixed some bozo mistakes on the index renaming on the resampled array.  Was
@@ -56,7 +61,8 @@ import pandas as pd
 import numpy as np
 import sys
 from quat2eul import quat2eul
-#import make_plots
+from make_plots import make_plots
+from obfuscate_gps import obfuscate
 
 
 def combine_and_resample_px4_nogui(input_path,file_suffix=''):
@@ -66,13 +72,14 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
                                 'input_rc','battery_status','attitude',
                                 'control','air_data','vehicle_status_0']
     
-    #list of key words to identify the columns we wantS
+    #list of key words to identify the columns we want
     keywords_for_columns = ['lat','lon','alt','hdop','vdop','mode_slot',
                             'accelerometer_m_s2[0]','accelerometer_m_s2[1]',
                             'accelerometer_m_s2[2]','gyro_rad[0]','gyro_rad[1]',
                             'gyro_rad[2]','magnetometer_ga[0]','magnetometer_ga[1]',
-                            'magnetometer_ga[2]','failsafe','voltage','rssi',
-                            'channel','q[0]','q[1]','q[2]','q[3]','baro_alt','values[5]','nav_state']
+                            'magnetometer_ga[2]','failsafe','voltage_v','rssi',
+                            'channel','q[0]','q[1]','q[2]','q[3]','baro_alt',
+                            'values[5]','nav_state']
 
     os.chdir(input_path)
        
@@ -82,7 +89,7 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     #remove the files we know we do not want from the list
     list_of_filenames = [item for item in list_of_filenames if any(word in item for word in keywords_in_wanted_files)]
     
-     #check if list_of_filenames is populated
+     #check if list_of_filenames is populated and exit if it is
     if len(list_of_filenames) == 0:
         sys.exit("There are no files to process in " + input_path)  
     
@@ -99,20 +106,20 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     # filename, put the df into a list of other df
     for current_filename in list_of_filenames:
         
-        # this is the important read, read in the data we care about, the index is
-        # stored in column 0, the header is stored in row 0, pandas will name columns
-        # automatically for us using the header row
+        # this is the important read, read in the data we care about, the index
+        # is stored in column 0, the header is stored in row 0, pandas will 
+        # name columns automatically for us using the header row
         
         df = pd.read_csv(current_filename, index_col=0, header=0)
         
-        #get a list of all the headers in the csv
+        # get a list of all the headers in the csv
         column_headers = df.columns
         
-        #create an empty list to append
+        # create an empty list to append
         columns_to_keep = []
         
-        #get a list of the columns we want to keep for each csv by iterating through the file
-        #and getting the headers
+        # get a list of the columns we want to keep for each csv by iterating 
+        # through the file and getting the headers
         
         for header in column_headers:
             #get the list of keywords
@@ -128,8 +135,8 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
                         columns_to_keep.append(header)
                         assign_names(keyword, new_headers)
                         
-                    #add the header to the list of headers to keep if it has the keyword
-                    #by calling the assignname_ function
+                    #add the header to the list of headers to keep if it has
+                    # the keyword by calling the assignname_ function
                     if keyword != 'lat' and keyword != 'alt':
                         columns_to_keep.append(header)
                         assign_names(keyword, new_headers)
@@ -147,16 +154,16 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     # create the big df by using the concat method called on a list of small df
     big_df = pd.concat(list_of_df, axis=0, ignore_index=False, sort=False)
 
-    # sort on the timestamp column, otherwise the small df are stuck together end
-    #-to-end which isn't what we want
+    # sort on the timestamp column, otherwise the small df are stuck together 
+    # end-to-end which isn't what we want
     big_df = big_df.sort_values(by='timestamp')
     
-    # for px4 some data files start with 0 for timestamp, we don't want this, so
-    # we will just discard these rows for now
+    # for px4 some data files start with 0 for timestamp, we don't want this, 
+    # so we will just discard these rows for now
     big_df = big_df.drop(0, errors="ignore")
      
     # offset time to zero just because we can
-    big_df.index = big_df.index - big_df.index[0]
+    big_df.index = big_df.index - big_df.index[0] 
     
     # fill the missing spaces, use ffill to move the most recent valid observation
     # forward
@@ -191,7 +198,7 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     resampled_df = big_df.asfreq(str(freq_arg)+freq_type, method='ffill')
     
     # get rid of the annoying time index, switch back to delta time in seconds
-    resampled_df.index = resampled_df.index.values.astype(np.uint64)/1000
+    resampled_df.index = resampled_df.index.values.astype(np.uint64)/1000000
     
     # get rid of the unused column before we send it to csv
     resampled_df = resampled_df.drop(columns=['time_properformat'])
@@ -202,10 +209,18 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     #call the quat2eul function to change the attitude to eul
     r,p,y = quat2eul(resampled_df['Att.Qx'],resampled_df['Att.Qy'],resampled_df['Att.Qz'],resampled_df['Att.Qw'])
     
+    #call the obfuscate function to change gps coordinates to relative
+    lat,lon,alt = obfuscate(resampled_df['GPS.lat'],resampled_df['GPS.lon'],resampled_df['GPS.alt'])
+    
+    #change the values in the file
+    resampled_df['GPS.lat'] = lat
+    resampled_df['GPS.lon'] = lon
+    resampled_df['GPS.alt'] = alt
+    
     # add the pitch roll and yaw to the resampled_df
-    resampled_df['Att.Roll'] = r
-    resampled_df['Att.Pitch'] = p
-    resampled_df['Att.Yaw'] = y
+    resampled_df['Att.roll'] = r
+    resampled_df['Att.pitch'] = p
+    resampled_df['Att.yaw'] = y
     
     #drop the columns with the quat data in them
     resampled_df = resampled_df.drop(columns = ['Att.Qx','Att.Qy','Att.Qz','Att.Qw'])
@@ -218,12 +233,12 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     
     # write the result, we want to write the index column, we want to label the index
     # column, feel free to change the name
-    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_combined.csv'),index=True,index_label='Time')
+    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_results.csv'),index=True,index_label='Time')
     
     print('Resampling complete.')
-    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_suffix+'_combined.csv')))
+    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_suffix+'_results.csv')))
     
-    #make_plots.make_plots(os.path.join('combined',file_suffix+'_combined.csv'))
+    make_plots(os.path.join('combined',file_suffix+'_results.csv'))
 
 # function creates a list of the new column headers in the correct order
 def assign_names(keyword, new_headers):
@@ -261,8 +276,8 @@ def assign_names(keyword, new_headers):
          new_headers.append('Mag.z')
     if (keyword == 'failsafe'):
          new_headers.append('RCfailsafe')
-    if (keyword == 'voltage'):
-         new_headers.append('Batt')
+    if (keyword == 'voltage_v'):
+         new_headers.append('Voltage')
     if (keyword == 'rssi'):
          new_headers.append('RCsignalstrength')
     if (keyword == 'channel'):
