@@ -32,7 +32,8 @@ Changelog:
             Moved enable/disable flag to the top of the file for ease of access
 07/08/2020  Thomas Cacy
             Replaced a line that changes the working dir so that it works and 
-            will process all files in a dir
+            will process all files in a dir. Added some lines so the program 
+            can tell which files have been processed and ignore them
 '''
 
 # os library used for directory handing and traversing
@@ -45,10 +46,6 @@ from combine_and_resample_px4_nogui import combine_and_resample_px4_nogui
 
 python_version = sys.version_info
 
-#this is a stand in
-path = "C:/Users/thoma/Documents/Work/test_files"
-
-'''
 if python_version.major == 3:
 
     from tkinter.filedialog import askdirectory
@@ -60,11 +57,12 @@ elif python_version.major == 2:
     import tkFileDialog
     # shows dialog box and return the path
     path = tkFileDialog.askdirectory(title='Select Folder')
-    
+    if path == None:
+        sys.exit()
 else:
     
     raise Exception('something is wrong with your Python version')
-'''
+
 os.chdir(path)
 
 # if files have already been converted set this to False to save time
