@@ -78,8 +78,8 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
                             'accelerometer_m_s2[2]','gyro_rad[0]','gyro_rad[1]',
                             'gyro_rad[2]','magnetometer_ga[0]','magnetometer_ga[1]',
                             'magnetometer_ga[2]','failsafe','voltage_v','rssi',
-                            'channel','q[0]','q[1]','q[2]','q[3]','baro_alt',
-                            'values[5]','nav_state']
+                            'channel','q[0]','q[1]','q[2]','q[3]','baro_alt'
+                            ,'nav_state']
 
     os.chdir(input_path)
        
@@ -292,7 +292,5 @@ def assign_names(keyword, new_headers):
          new_headers.append('Att.Qw')
     if (keyword == 'baro_alt'):
          new_headers.append('BaroAlt')
-    if (keyword == 'values[5]'):
-         new_headers.append('Trigger')
     if (keyword == 'nav_state'):
          new_headers.append('Nav State')

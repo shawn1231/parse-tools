@@ -11,7 +11,7 @@ Change Log:     Thomas Cacy
 Date:           07/08/2020
                 changed so it works with unified parsing script's new headers
                 and removed convertions that happen in the combine_and_resample
-                script
+                script. Removed gragh of trigger
 """
 
 import pandas as pd
@@ -89,17 +89,5 @@ def make_plots(filename_in):
     plt.ylabel('Value')
     plt.legend(['Navigational State'])
     plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_NavState.png'),dpi=600,bbox_inche='tight')
-    
-    print('Plot Trigger')
-    
-    #Graph Trigger
-    plt.figure()
-    plt.plot(df['time_seconds'],df['Trigger'])
-    #plt.axvline(x=illumination, linewidth=0.5, color='red')
-    plt.title('High to Low = Trigger')
-    plt.xlabel('Time, s')
-    plt.ylabel('ON/OFF')
-    plt.legend(['Input'])
-    plt.savefig(os.path.join(os.path.dirname(os.path.dirname(just_the_pathname)),'Plots',just_the_filename[:-4]+'_Trigger.png'),dpi=600,bbox_inche='tight')
     
     plt.close('all')
