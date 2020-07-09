@@ -74,7 +74,7 @@ files = [f for f in os.listdir('.') if f.endswith(".ulg")]
 # gets list of everything in the directory
 directories = [d for d in os.listdir('.')]
 
-# remove everything but the folders from the list
+# remove everything but directories from the list
 for d in directories:
     if os.path.isdir(d) == False:
         directories.remove(d)
@@ -106,7 +106,7 @@ for current_file in files:
     # populate the directory with the data file, "-n" is copy without replacing
     # saves us from using another if statement to check if the data file exists
     # call(["cp","-n",current_file,dir_name])
-    shutil.copy2(current_file,dir_name)
+    shutil.move(current_file,dir_name)
 
     # change to the directory we are currently concerned with
     os.chdir(dir_name)
