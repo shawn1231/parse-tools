@@ -125,7 +125,7 @@ for current_file in files:
     # Fight_Data subdirectory to be consistent
     #call(['mv',"-n",current_file,subdir_names[0]])
     if not os.path.exists(os.path.join(subdir_names[0],current_file)):
-        shutil.move(current_file,subdir_names[0])
+        shutil.copy2(current_file,subdir_names[0])
 
     # now we need to change to the subdirectory to run the ulog2csv converter
     os.chdir(subdir_names[0])
@@ -163,4 +163,3 @@ for current_file in files:
     os.chdir('..')
     
     print('Complete.')
-
