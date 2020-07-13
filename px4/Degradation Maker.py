@@ -16,7 +16,7 @@ Moves combined data to a new folder so it does not need to be done manually
 
 Adds a second file for the mean and stdev
 
-7/13/2020 Creates a second analysis file for the magnetometer data along with its mean and stdev 
+7/13/2020 Creates a second analysis file for the magnetometer data along with its mean and stdev
 Typo fixes
 FUTURE WORK: Only works for 1 file at a time currently, add functionality for multiple files
 
@@ -41,19 +41,21 @@ The directory must be changed to the new folder in order to get the file. Please
 
 import os
 import glob
-import pandas as pd 
+import pandas as pd
 from subprocess import call
 
 
 #NOTE: If you do not use forward slashes instead of backslashes you must put it in the format of r'path' with no backslashes at the end of the path. Python will give you an error otherwise due to unicode
 directorypath = 'C:/Users/cuav/Documents/Python_Scripts'
 
+os.chdir(directorypath)
+
 files = [f for f in os.listdir(directorypath) if f.endswith(".ulg")]
 
 #This will create the other files. Please use pip to install pyulog within the console beforehand if not done so before. You will need to restart kernel using Ctrl + . as well
 
 for current_file in files:
-    
+
     call(["ulog2csv",current_file])
 
 os.chdir(directorypath)
@@ -157,8 +159,8 @@ path = os.getcwd()
 directory = os.path.join(path,r'Degradation Data')
 if not os.path.exists(directory):
     os.makedirs(directory)
-    
-    
+
+
 #Changes directory to put it into the new folder
 os.chdir(directory)
 
