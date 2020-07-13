@@ -39,10 +39,15 @@ Notes:          To change the files which are added to the master csv, modify
                 list.
 Notes:          To make the ulog2csv converter work, install pyulog in the 
                 iPython console. To run commands from the console, you might 
-                need to preface it with '!.' Otherwise there will be a syntax
+                need to preface it with '!' otherwise there will be a syntax
                 error
     
 Changelog:
+07/10/2020 by Thomas Cacy
+Changed how the programs move through directories so it cleans up after itself
+and moved the making of a directory to the program that uses it to be fully 
+contained
+
 04/17/2020 by Thomas Cacy
 Changed what files are read into the program so that it only read the files we 
 want. Added some code to only take in the columns we want and obfuscate 
@@ -62,10 +67,11 @@ import numpy as np
 import sys
 from quat2eul import quat2eul
 from make_plots import make_plots
+from assign_names import assign_names
 from obfuscate_gps import obfuscate
 
 
-def combine_and_resample_px4_nogui(input_path,file_suffix=''):
+def combine_and_resample_px4_nogui(input_path,file_prefix=''):
     
     #list of file keywords to identify the files we want
     keywords_in_wanted_files = ['gps_position','combined','magnetometer_0',
@@ -75,12 +81,14 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     #list of key words to identify the columns we want
     keywords_for_columns = ['lat','lon','alt','hdop','vdop','mode_slot',
                             'accelerometer_m_s2[0]','accelerometer_m_s2[1]',
-                            'accelerometer_m_s2[2]','gyro_rad[0]','gyro_rad[1]',
-                            'gyro_rad[2]','magnetometer_ga[0]','magnetometer_ga[1]',
-                            'magnetometer_ga[2]','failsafe','voltage_v','rssi',
-                            'channel','q[0]','q[1]','q[2]','q[3]','baro_alt'
-                            ,'nav_state']
-
+                            'accelerometer_m_s2[2]','gyro_rad[0]','gyro_rad[1]'
+                            ,'gyro_rad[2]','magnetometer_ga[0]',
+                            'magnetometer_ga[1]','magnetometer_ga[2]',
+                            'failsafe','voltage_v','rssi','channel','q[0]',
+                            'q[1]','q[2]','q[3]','baro_alt','nav_state']
+    # save the current path to a variable so we can return to it later
+    original_path = os.getcwd()
+    
     os.chdir(input_path)
        
     # get list of filenames in directory ending with csv
@@ -109,7 +117,6 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
         # this is the important read, read in the data we care about, the index
         # is stored in column 0, the header is stored in row 0, pandas will 
         # name columns automatically for us using the header row
-        
         df = pd.read_csv(current_filename, index_col=0, header=0)
         
         # get a list of all the headers in the csv
@@ -135,7 +142,7 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
                         columns_to_keep.append(header)
                         assign_names(keyword, new_headers)
                         
-                    #add the header to the list of headers to keep if it has
+                    # add the header to the list of headers to keep if it has
                     # the keyword by calling the assignname_ function
                     if keyword != 'lat' and keyword != 'alt':
                         columns_to_keep.append(header)
@@ -233,64 +240,14 @@ def combine_and_resample_px4_nogui(input_path,file_suffix=''):
     
     # write the result, we want to write the index column, we want to label the index
     # column, feel free to change the name
-    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_suffix+'_results.csv'),index=True,index_label='Time')
+    resampled_df.to_csv(path_or_buf=os.path.join('combined',file_prefix+'_results.csv'),index=True,index_label='Time')
     
     print('Resampling complete.')
-    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_suffix+'_results.csv')))
+    print('Minimum sample time is:\t%f s\nThe corresponding frequency is:\t%f Hz\nOutput saved to:  %s' % (min_sampletime,1/min_sampletime,os.path.join('combined',file_prefix+'_results.csv')))
     
-    make_plots(os.path.join('combined',file_suffix+'_results.csv'))
-
-# function creates a list of the new column headers in the correct order
-def assign_names(keyword, new_headers):
+    # call the make_plot function and pass the location of the results file
+    make_plots('combined'+'/'+file_prefix+'_results.csv')
     
-    #assign the new header to the current header by the keyword
-    if (keyword == 'lat'):
-        new_headers.append('GPS.lat')
-    if (keyword == 'lon'):
-         new_headers.append('GPS.lon')
-    if (keyword =='alt'):
-         new_headers.append('GPS.alt')                        
-    if (keyword == 'hdop'):
-         new_headers.append('GPS.hdop')
-    if (keyword == 'vdop'):
-         new_headers.append('GPS.vdop')
-    if (keyword == 'mode_slot'):
-         new_headers.append('Mode')
-    if (keyword == 'accelerometer_m_s2[0]'):
-         new_headers.append('Accel.x')
-    if (keyword == 'accelerometer_m_s2[1]'):
-         new_headers.append('Accel.y')
-    if (keyword == 'accelerometer_m_s2[2]'):
-        new_headers.append('Accel.z')
-    if (keyword == 'gyro_rad[0]'):
-         new_headers.append('Gyro.x')
-    if (keyword == 'gyro_rad[1]'):
-         new_headers.append('Gyro.y')
-    if (keyword == 'gyro_rad[2]'):
-         new_headers.append('Gyro.z')
-    if (keyword == 'magnetometer_ga[0]'):
-         new_headers.append('Mag.x')
-    if (keyword == 'magnetometer_ga[1]'):
-         new_headers.append('Mag.y')
-    if (keyword == 'magnetometer_ga[2]'):
-         new_headers.append('Mag.z')
-    if (keyword == 'failsafe'):
-         new_headers.append('RCfailsafe')
-    if (keyword == 'voltage_v'):
-         new_headers.append('Voltage')
-    if (keyword == 'rssi'):
-         new_headers.append('RCsignalstrength')
-    if (keyword == 'channel'):
-         new_headers.append('RCin')
-    if (keyword == 'q[0]'):
-         new_headers.append('Att.Qx')
-    if (keyword == 'q[1]'):
-         new_headers.append('Att.Qy')
-    if (keyword == 'q[2]'):
-         new_headers.append('Att.Qz')
-    if (keyword == 'q[3]'):
-         new_headers.append('Att.Qw')
-    if (keyword == 'baro_alt'):
-         new_headers.append('BaroAlt')
-    if (keyword == 'nav_state'):
-         new_headers.append('Nav State')
+    # go back to the original directory so we can iterate through the rest of 
+    # the files
+    os.chdir(original_path)
