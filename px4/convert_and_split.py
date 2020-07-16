@@ -128,8 +128,6 @@ for current_file in files:
     else: 
         print('Ulog file has already been converted for: '+dir_name)
         
-        
-
     # print a progress report as the name of the file as we work
     # through the files
     print('Working on: '+current_file)
