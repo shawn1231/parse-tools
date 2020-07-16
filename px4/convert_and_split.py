@@ -44,7 +44,7 @@ import sys
 # this will be used for calling terminal command directly from python
 from subprocess import call
 from combine_and_resample_px4_nogui import combine_and_resample_px4_nogui
-
+from pandas import errors
 python_version = sys.version_info
 
 if python_version.major == 3:
@@ -144,7 +144,7 @@ for current_file in files:
         try:
             combine_and_resample_px4_nogui(dir_name+'/'+subdir_names[0], dir_name)
             
-        except IOError as err: 
+        except (IOError,errors.EmptyDataError) as err: 
             print('An error occured: {0}'.format(err))
         
     print('Complete.')
