@@ -138,10 +138,10 @@ df2.insert(1,'Group',Group3)
 df2.insert(2,'Rep',Repit3)
 
 
-name2 = name.replace('.csv','-Combined.csv')
-name3 = name.replace('.csv','-Statistics.csv')
-name4 = name.replace('.csv','-Statistics-Magnet.csv')
-name5 = name.replace('.csv','-Combined-Magnet.csv')
+name2 = name.replace('.csv','-Degradation-Data.csv')
+name3 = name.replace('.csv','-Degradation-Statistics.csv')
+name4 = name.replace('.csv','-Magnet-Statistics.csv')
+name5 = name.replace('.csv','-Magnet-Data.csv')
 
 #Insert Group and Rep within the statistics dataframe mean with correct length
 Group2 = [Number] * 2
