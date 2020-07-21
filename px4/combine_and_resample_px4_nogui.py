@@ -215,9 +215,7 @@ def combine_and_resample_px4_nogui(input_path,file_prefix=''):
     
     # get rid of the unused column before we send it to csv
     resampled_df = resampled_df.drop(columns=['time_properformat'])
-    
-    print(resampled_df.columns)
-    print(new_headers)
+
     #assign the new headers to the columns
     resampled_df.columns = new_headers
     
