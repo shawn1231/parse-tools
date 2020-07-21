@@ -395,6 +395,7 @@ def make_plots(filename_in):
         
     else: 
         print('RC plot already exists for: '+just_the_filename[:-4])
+
     
      
     plt.close('all')
