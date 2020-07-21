@@ -40,14 +40,50 @@ def assign_names(keyword, new_headers):
          new_headers.append('Mag.y')
     if (keyword == 'magnetometer_ga[2]'):
          new_headers.append('Mag.z')
-    if (keyword == 'failsafe'):
-         new_headers.append('RCfailsafe')
+    if (keyword == 'rc_failsafe'):
+         new_headers.append('RC.Failsafe')
     if (keyword == 'voltage_v'):
          new_headers.append('Voltage')
     if (keyword == 'rssi'):
-         new_headers.append('RCsignalstrength')
-    if (keyword == 'channel'):
-         new_headers.append('RCin')
+         new_headers.append('Signalstrength')
+    if (keyword == 'values[0]'):
+         new_headers.append('Channels_in.0')
+    if (keyword == 'values[1]'):
+         new_headers.append('Channels_in.1')
+    if (keyword == 'values[2]'):
+         new_headers.append('Channels_in.2')
+    if (keyword == 'values[3]'):
+         new_headers.append('Channels_in.3')
+    if (keyword == 'values[4]'):
+         new_headers.append('Channels_in.4')
+    if (keyword == 'values[5]'):
+         new_headers.append('Channels_in.5')
+    if (keyword == 'values[6]'):
+         new_headers.append('Channels_in.6')
+    if (keyword == 'values[7]'):
+         new_headers.append('Channels_in.7')
+    if (keyword == 'values[8]'):
+         new_headers.append('Channels_in.8')
+    if (keyword == 'values[9]'):
+         new_headers.append('Channels_in.9')
+    if (keyword == 'values[10]'):
+         new_headers.append('Channels_in.10')
+    if (keyword == 'values[11]'):
+         new_headers.append('Channels_in.11')
+    if (keyword == 'values[12]'):
+         new_headers.append('Channels_in.12')
+    if (keyword == 'values[13]'):
+         new_headers.append('Channels_in.13')
+    if (keyword == 'values[14]'):
+         new_headers.append('Channels_in.14')
+    if (keyword == 'values[15]'):
+         new_headers.append('Channels_in.15')
+    if (keyword == 'values[16]'):
+         new_headers.append('Channels_in.16')
+    if (keyword == 'values[17]'):
+         new_headers.append('Channels_in.17')
+    if (keyword == 'values[18]'):
+         new_headers.append('Channels_in.18')
     if (keyword == 'q[0]'):
          new_headers.append('Att.Qx')
     if (keyword == 'q[1]'):

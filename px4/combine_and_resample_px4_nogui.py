@@ -68,7 +68,7 @@ import sys
 from quat2eul import quat2eul
 from make_plots import make_plots
 from assign_names import assign_names
-from obfuscate_gps import obfuscate
+# from obfuscate_gps import obfuscate
 
 
 def combine_and_resample_px4_nogui(input_path,file_prefix=''):
@@ -84,8 +84,13 @@ def combine_and_resample_px4_nogui(input_path,file_prefix=''):
                             'accelerometer_m_s2[2]','gyro_rad[0]','gyro_rad[1]'
                             ,'gyro_rad[2]','magnetometer_ga[0]',
                             'magnetometer_ga[1]','magnetometer_ga[2]',
-                            'failsafe','voltage_v','rssi','channel','q[0]',
-                            'q[1]','q[2]','q[3]','baro_alt','nav_state']
+                            'rc_failsafe','voltage_v','rssi','q[0]',
+                            'q[1]','q[2]','q[3]','baro_alt','nav_state',
+                            'values[0]','values[1]','values[2]','values[3]',
+                            'values[4]','values[5]','values[6]','values[7]',
+                            'values[8]','values[9]','values[10]','values[11]',
+                            'values[12]','values[13]','values[14]','values[15]'
+                            ,'values[16]','values[17]','values[18]']
     # save the current path to a variable so we can return to it later
     original_path = os.getcwd()
     
@@ -147,6 +152,7 @@ def combine_and_resample_px4_nogui(input_path,file_prefix=''):
                     if keyword != 'lat' and keyword != 'alt':
                         columns_to_keep.append(header)
                         assign_names(keyword, new_headers)
+
         
         #change the list to just have the columns we want
         reject_column_list = [header for header in column_headers if header not in columns_to_keep]
@@ -210,12 +216,14 @@ def combine_and_resample_px4_nogui(input_path,file_prefix=''):
     # get rid of the unused column before we send it to csv
     resampled_df = resampled_df.drop(columns=['time_properformat'])
     
+    print(resampled_df.columns)
+    print(new_headers)
     #assign the new headers to the columns
     resampled_df.columns = new_headers
     
     #call the quat2eul function to change the attitude to eul
     r,p,y = quat2eul(resampled_df['Att.Qx'],resampled_df['Att.Qy'],resampled_df['Att.Qz'],resampled_df['Att.Qw'])
-    
+    '''
     #call the obfuscate function to change gps coordinates to relative
     lat,lon,alt = obfuscate(resampled_df['GPS.lat'],resampled_df['GPS.lon'],resampled_df['GPS.alt'])
     
@@ -223,7 +231,7 @@ def combine_and_resample_px4_nogui(input_path,file_prefix=''):
     resampled_df['GPS.lat'] = lat
     resampled_df['GPS.lon'] = lon
     resampled_df['GPS.alt'] = alt
-    
+    '''
     # add the pitch roll and yaw to the resampled_df
     resampled_df['Att.roll'] = r
     resampled_df['Att.pitch'] = p
