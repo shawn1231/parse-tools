@@ -28,24 +28,63 @@ Changelog:
             Encapsulate calls to pyulog methods inside of an if statement for
             ease of enable/disable behavior when rerunning analysis on data
             which has already been converted
+09/26/2019  Shawn Herrington
+            Moved enable/disable flag to the top of the file for ease of access
+07/08/2020  Thomas Cacy
+            Replaced a line that changes the working dir so that it works and 
+            will process all files in a dir. Added some lines so the program 
+            can tell which files have been processed and ignore them. Removed 
+            unecassary copying and moving of large files. Moved the creation of
+            directories to the program that uses them to be consistent
 '''
 
 # os library used for directory handing and traversing
 import os
-#import sys
+import sys
 # this will be used for calling terminal command directly from python
 from subprocess import call
-import shutil
 from combine_and_resample_px4_nogui import combine_and_resample_px4_nogui
-from tkinter.filedialog import askdirectory
-path = askdirectory(title='Select Folder') # shows dialog box and return the path
+from pandas import errors
+python_version = sys.version_info
+
+if python_version.major == 3:
+
+    from tkinter.filedialog import askdirectory
+    # shows dialog box and return the path
+    path = askdirectory(title='Select Folder')
+
+elif python_version.major == 2:
+
+    import tkFileDialog
+    from tkinter import Tk
+    #create root window
+    root = Tk()
+    # shows dialog box and return the path
+    path = tkFileDialog.askdirectory(title='Select Folder')
+    
+    #close root window
+    root.quit()
+    if path == None:
+        sys.exit()
+else:
+    
+    raise Exception('something is wrong with your Python version')
+
 os.chdir(path)
 
 # this will get a list of all files in the current directory ending with ".ulg"
 files = [f for f in os.listdir('.') if f.endswith(".ulg")]
 
+# check if there are any files to process and exit if not
+if len(files) == 0:
+    sys.exit("There are no files to process in " + path)
+
 for current_file in files:
 
+    # set convert_ulogs to True so we can iterate through the directory this 
+    # will be changed to False if the files were already converted
+    convert_ulogs = True
+    
     # create the required directory name from the name of the current_file
     # we are going to remove 4 chars from the end to get rid of ".ulg"
     endlen = len(current_file)
@@ -54,64 +93,56 @@ for current_file in files:
     # if statement to determine if directory exists
     if(not(os.path.isdir(dir_name))):
         # if no directory exists, create the directory
-        #call(["mkdir",dir_name])
         os.mkdir(dir_name)
 
-    # populate the directory with the data file, "-n" is copy without replacing
-    # saves us from using another if statement to check if the data file exists
-    #call(["cp","-n",current_file,dir_name])
-    shutil.copy2(current_file,dir_name)
-
-    # change to the directory we are currently concerned with
-    os.chdir(dir_name)
-
-    # create list of subdirectories so we can create them as necessary in a fancy way
-    subdir_names = ["Flight_Data","Plots"]
+    # create list of subdirectories so we can create them as necessary in a 
+    # fancy way
+    subdir_names = ["Flight_Data"]
 
     for current_name in subdir_names:
         # check for subdirectories and create if necessary
-        if(not(os.path.isdir(current_name))):
-            #call(['mkdir',current_name])
-            os.mkdir(current_name)
-
-    # now we know subdirectories exists, let's move the local .ulg file into the 
-    # Fight_Data subdirectory to be consistent
-    #call(['mv',"-n",current_file,subdir_names[0]])
-    if not os.path.exists(os.path.join(subdir_names[0],current_file)):
-        shutil.move(current_file,subdir_names[0])
-
-    # now we need to change to the subdirectory to run the ulog2csv converter
-    os.chdir(subdir_names[0])
-
-    # invoke the ulog2csv application, send the current_file as argument
-    # this should create many csv in the current directory from a single ulg file
-    
-    #if statement to avoid reconverting all ulog files and just plot data.
-    convert_ulogs = False
+        if os.path.isdir(os.path.join(dir_name,current_name)):
+            # check if the directory has already been polupated meaning the 
+            # ulog has already been converted
+            if not(len(os.listdir(os.path.join(dir_name,current_name))) == 0):
+                convert_ulogs = False
+        else:
+            os.mkdir(os.path.join(dir_name,current_name))
+            
+        
+    # if statement to avoid reconverting all ulog files and just plot data.
     if convert_ulogs:
-        call(["ulog2csv",current_file])
-
+                
+        # invoke the ulog2csv application, send the current_file as argument
+        # this should create many csv in the current directory from a single 
+        # ulg file
+        call(["ulog2csv",'-i',current_file,'-o',dir_name+'/'+subdir_names[0]])
+        
         # call the other pyulog methods and write the output to text files
         # open with 'w' option is write only and will overwrite existing files
-        call(['ulog_info',current_file], stdout=open(dir_name+'_info.txt','w'))
-        call(['ulog_params','-i',current_file], stdout=open(dir_name+'_params.txt','w'))
-        call(['ulog_messages',current_file], stdout=open(dir_name+'_messages.txt','w'))
-
-    # create a path var to print out and to send to the other parse function
-    # AVOID MASKING SYSTEM VAR "path" by giving it a different name
-    print('Working on files in this directory:')
-    print_path = os.getcwd()
-
-    # print a progress report as the name of the current directory as we work
+        call(['ulog_info',current_file], stdout=open(dir_name+'/'+subdir_names[0]+'/'+dir_name+'_info.txt','w'))
+        call(['ulog_params','-i',current_file], stdout=open(dir_name+'/'+subdir_names[0]+'/'+dir_name+'_params.txt','w'))
+        call(['ulog_messages',current_file], stdout=open(dir_name+'/'+subdir_names[0]+'/'+dir_name+'_messages.txt','w'))
+        
+    # print report on ulog files
+    else: 
+        print('Ulog file has already been converted for: '+dir_name)
+        
+    # print a progress report as the name of the file as we work
     # through the files
-    print(print_path)
+    print('Working on: '+current_file)
+
 
     # pass the progress report path to the combine_and_resample_px4_nogui() 
-    # function, it will combine all csvs then stick them in a new directory
-    combine_and_resample_px4_nogui(print_path,dir_name)
-    
-    # go back up two levels so that we can keep iterating on the directory
-    os.chdir(os.path.join('..','..'))
-    
+    # function if it does not already exist function, it will combine all csvs 
+    # then stick them in a new directory
+    if os.path.isfile(dir_name+'/'+subdir_names[0]+'/'+dir_name+'_results.csv'):
+        print('Resampling already completed for: '+ current_file)
+    else:
+        try:
+            combine_and_resample_px4_nogui(dir_name+'/'+subdir_names[0], dir_name)
+            
+        except (IOError,errors.EmptyDataError) as err: 
+            print('An error occured: {0}'.format(err))
+        
     print('Complete.')
-    print('')
